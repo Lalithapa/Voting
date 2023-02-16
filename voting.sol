@@ -34,7 +34,6 @@ contract vote{
     mapping(uint => candidate) candidateDetails;
 
     bool stopVoting; // electionCommission has the autority to stop voting incase of emergency
-
   constructor(){
       electionCommission = msg.sender; // deployer will be the electionCommission
   }
@@ -88,16 +87,14 @@ contract vote{
          endTime = startTime+_endTime;
          stopVoting=false;
    }
-    function votingProcess(uint _voterId , uint _Id) public checkElectionStops{  //Votimg Procedure
-       require(startTime < block.timestamp , "Voting has not started yet!");
-       require(endTime > block.timestamp , "Voting has been Ended , will declare the Winner soon !");
-       require(_Id > 0 && _Id < 3,"CandidateId does not exist" );
-       require(_voterId > 0 && _voterId < 3,"VoterId does not exist" );
-      // require(nextCandidateId > 2 , "Party is not yet fullfilled , Wait for Sometime");
+    function votingProcess(uint _voterId , uint _canId) public checkElectionStops voteInProgress{  //Votimg Procedure
+       require(_canId > 0 && _canId <= nextCandidateId,"Candidate Id does not exist" );
+       require(_voterId > 0 && _voterId <= nextVoterId,"VoterId does not exist" );
+      //require(nextCandidateId > 2 , "Party is not yet fullfilled , Wait for Sometime");
        require(voterDetails[_voterId].voterAddress == msg.sender,"You are not an regisered Voter, Kindly Register first!");
        require(voterDetails[_voterId].voterCandidateId == 0 , "You have already Voted");
-       candidateDetails[_Id].votes++;
-       voterDetails[_voterId].voterCandidateId=_Id;
+       candidateDetails[_canId].votes++;
+       voterDetails[_voterId].voterCandidateId=_canId;
    }
 
    function StopVoting() external {
@@ -132,6 +129,11 @@ contract vote{
   }
    modifier candidateSlot() {
         require(nextCandidateId < 3 ,"Registration is full for this Voting Period");
+        _;
+    }
+   modifier voteInProgress() {
+        require(startTime < block.timestamp , "Voting has not started yet!");
+       require(endTime > block.timestamp , "Voting has been Ended , will declare the Winner soon !");
         _;
     }
     modifier electionRights() {
